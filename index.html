@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#3f89ca">
+  <title>Mijn potje</title>
+  <style>
+    :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#17202a;background:#eef5fb;color-scheme:light}
+    *{box-sizing:border-box}body{margin:0;min-height:100svh;display:grid;place-items:center;padding:20px}.app{width:min(100%,470px);background:#fff;border-radius:24px;padding:24px;box-shadow:0 18px 55px rgba(31,75,113,.13)}
+    header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:28px}h1{font-size:22px;margin:0 0 4px;font-weight:700}.period{font-size:13px;color:#687786}.person{background:#e9f3fc;color:#27689f;border-radius:999px;padding:7px 11px;font-size:13px;font-weight:650}
+    .label{font-size:14px;color:#687786}.amount{font-size:42px;line-height:1.1;font-weight:750;letter-spacing:-.045em;margin:4px 0 18px;font-variant-numeric:tabular-nums}.bar{height:13px;background:#e7edf2;border-radius:999px;overflow:hidden}.fill{height:100%;width:100%;background:#3f89ca;border-radius:inherit;transition:width .25s ease}.bar-labels{display:flex;justify-content:space-between;margin-top:7px;font-size:12px;color:#7a8792;font-variant-numeric:tabular-nums}
+    .summary{display:flex;justify-content:space-between;margin:20px 0 10px;padding:14px 0;border-block:1px solid #e7edf2}.summary strong{display:block;margin-top:3px;font-variant-numeric:tabular-nums}.summary div:last-child{text-align:right}
+    form{display:flex;gap:9px;margin-top:18px}#setup-form{display:block}input{min-width:0;flex:1;height:48px;border:1px solid #ccd6df;border-radius:12px;padding:0 14px;font:inherit;font-size:16px}input:focus{outline:3px solid rgba(63,137,202,.22);border-color:#3f89ca}button{border:0;border-radius:12px;font:inherit;font-weight:650;min-height:48px}.add{padding:0 17px;background:#3f89ca;color:#fff}.message{min-height:20px;margin:8px 0 0;font-size:13px;color:#b33a3a}
+    .history{margin-top:12px}.empty{padding:14px 0;color:#7a8792;font-size:14px}.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid #e7edf2}.row time{font-size:13px;color:#7a8792}.row-main{display:flex;align-items:baseline;gap:9px}.row strong{font-variant-numeric:tabular-nums}.delete{width:42px;color:#7a8792;background:transparent;font-size:20px}.invalid{text-align:center}.invalid h1{margin-bottom:8px}.invalid p{color:#687786;margin:0}.setup-title{margin:0 0 6px;font-size:22px}.setup-copy{color:#687786;font-size:14px;margin:0 0 20px}.fields{display:grid;gap:14px}.fields label{display:grid;gap:6px;color:#687786;font-size:14px}.fields input{width:100%}.settings{margin-top:12px;background:transparent;color:#27689f;padding:6px 0;font-size:14px}.days{font-size:14px;color:#687786;margin:12px 0 0}.days strong{color:#17202a}.pot-controls{display:flex;gap:9px;margin:-12px 0 22px}.pot-controls select{min-width:0;flex:1;height:44px;border:1px solid #ccd6df;border-radius:12px;background:white;padding:0 12px;font:inherit}.small-button{background:#e9f3fc;color:#27689f;padding:0 13px;min-height:44px}
+    @media(max-width:390px){.app{padding:20px;border-radius:20px}.amount{font-size:38px}}
+  </style>
+</head>
+<body>
+  <main class="app" id="app" hidden>
+    <section id="setup-view" hidden>
+      <h1 class="setup-title" id="setup-title">Stel je potje in</h1><p class="setup-copy">Geef je potje een naam, budget en einddatum.</p>
+      <form id="setup-form"><div class="fields"><label for="name-input">Naam van het potje<input id="name-input" type="text" maxlength="32" placeholder="Bijvoorbeeld boodschappen" required></label><label for="budget-input">Budget in euro<input id="budget-input" type="number" min="0.01" step="0.01" inputmode="decimal" required></label><label for="end-input">Einddatum<input id="end-input" type="date" required></label></div><button class="add" type="submit" style="width:100%;margin-top:16px">Opslaan en beginnen</button></form>
+      <p class="message" id="setup-message" role="alert"></p>
+    </section>
+    <section id="tracker-view" hidden>
+      <header><div><h1 id="pot-title">Mijn potje</h1><div class="period" id="period"></div></div><span class="person" id="person"></span></header>
+      <div class="pot-controls"><select id="pot-select" aria-label="Kies een potje"></select><button class="small-button" id="add-pot" type="button">+ Potje</button></div>
+      <div class="label">Nog te besteden</div><div class="amount" id="remaining" aria-live="polite">€ 200,00</div>
+      <div class="bar" role="progressbar" aria-label="Resterend budget" aria-valuemin="0"><div class="fill" id="fill"></div></div>
+      <div class="bar-labels"><span>€ 0</span><span id="budget-label">€ 200</span></div>
+      <div class="summary"><div><span class="label">Uitgegeven</span><strong id="spent">€ 0,00</strong></div><div><span class="label">Aantal uitgaven</span><strong id="count">0</strong></div></div>
+      <p class="days" id="days-left"></p>
+      <form id="form"><input id="amount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="Bedrag in €" aria-label="Uitgavebedrag" required><button class="add" type="submit">Toevoegen</button></form>
+      <p class="message" id="message" role="alert"></p><section class="history" id="history" aria-label="Uitgaven"></section>
+      <button class="settings" id="edit-settings" type="button">Potje aanpassen</button>
+    </section>
+  </main>
+  <main class="app invalid" id="invalid" hidden><h1>Deze link klopt niet</h1><p>Open je persoonlijke potjeslink opnieuw.</p></main>
+  <script>
+    (()=>{
+      const profiles={
+        't-7q4m2x9k':{name:'Tijmen'},
+        'g-8v3p6n1r':{name:'Gerrieke'}
+      };
+      const token=new URLSearchParams(location.search).get('p');
+      const profile=profiles[token];
+      if(!profile){document.getElementById('invalid').hidden=false;return}
+      const app=document.getElementById('app');app.hidden=false;document.getElementById('person').textContent=profile.name;document.title=`${profile.name} · Mijn potje`;
+      const key=`potjes-${token}`;let pots=[];let activeId=null;let editId=null;
+      try{const stored=JSON.parse(localStorage.getItem(key));if(stored&&Array.isArray(stored.pots)){pots=stored.pots.filter(p=>p&&typeof p.id==='string'&&typeof p.name==='string'&&Number.isFinite(p.budget)&&p.budget>0&&/^\d{4}-\d{2}-\d{2}$/.test(p.endDate)&&Array.isArray(p.entries));activeId=stored.activeId}}catch(e){}
+      const euro=n=>new Intl.NumberFormat('nl-NL',{style:'currency',currency:'EUR'}).format(n);
+      const date=d=>new Intl.DateTimeFormat('nl-NL',{day:'numeric',month:'short'}).format(new Date(d));
+      const formatDate=d=>new Intl.DateTimeFormat('nl-NL',{day:'numeric',month:'long',year:'numeric'}).format(new Date(`${d}T12:00:00`));
+      const save=()=>localStorage.setItem(key,JSON.stringify({pots,activeId}));
+      const setup=document.getElementById('setup-view');const tracker=document.getElementById('tracker-view');
+      function showSetup(id=null){editId=id;setup.hidden=false;tracker.hidden=true;const pot=pots.find(p=>p.id===id);document.getElementById('setup-title').textContent=pot?'Potje aanpassen':pots.length?'Nieuw potje':'Stel je eerste potje in';document.getElementById('name-input').value=pot?.name??'';document.getElementById('budget-input').value=pot?.budget??200;document.getElementById('end-input').value=pot?.endDate??'2026-11-25';document.querySelector('#setup-form .add').textContent=pot?'Wijzigingen opslaan':pots.length?'Potje toevoegen':'Opslaan en beginnen'}
+      function render(){
+        if(!pots.length){showSetup();return}const active=pots.find(p=>p.id===activeId)||pots[0];activeId=active.id;setup.hidden=true;tracker.hidden=false;
+        document.getElementById('pot-title').textContent=active.name;const select=document.getElementById('pot-select');select.replaceChildren();pots.forEach(p=>{const option=document.createElement('option');option.value=p.id;option.textContent=p.name;option.selected=p.id===active.id;select.append(option)});
+        const spent=Math.round(active.entries.reduce((s,e)=>s+e.amount,0)*100)/100;const remaining=Math.round((active.budget-spent)*100)/100;const pct=Math.max(0,Math.min(100,remaining/active.budget*100));
+        document.getElementById('remaining').textContent=euro(remaining);document.getElementById('spent').textContent=euro(spent);document.getElementById('count').textContent=active.entries.length;
+        document.getElementById('fill').style.width=`${pct}%`;document.querySelector('.bar').setAttribute('aria-valuemax',active.budget);document.querySelector('.bar').setAttribute('aria-valuenow',Math.max(0,remaining));document.getElementById('budget-label').textContent=euro(active.budget);document.getElementById('period').textContent=`Tot en met ${formatDate(active.endDate)}`;
+        const now=new Date();const todayKey=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;const days=Math.max(0,(Date.parse(`${active.endDate}T00:00:00Z`)-Date.parse(`${todayKey}T00:00:00Z`))/86400000);document.getElementById('days-left').innerHTML=days===0?'Deze periode eindigt vandaag.':`Nog <strong>${days} ${days===1?'dag':'dagen'}</strong> tot de einddatum.`;
+        const history=document.getElementById('history');history.replaceChildren();
+        if(!active.entries.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='Nog geen uitgaven';history.append(empty)}
+        [...active.entries].reverse().forEach(entry=>{const row=document.createElement('div');row.className='row';const main=document.createElement('div');main.className='row-main';const value=document.createElement('strong');value.textContent=`− ${euro(entry.amount)}`;const time=document.createElement('time');time.dateTime=entry.createdAt;time.textContent=date(entry.createdAt);const remove=document.createElement('button');remove.type='button';remove.className='delete';remove.setAttribute('aria-label',`Verwijder uitgave van ${euro(entry.amount)}`);remove.textContent='×';remove.addEventListener('click',()=>{active.entries=active.entries.filter(e=>e.id!==entry.id);save();render()});main.append(value,time);row.append(main,remove);history.append(row)});
+      }
+      document.getElementById('setup-form').addEventListener('submit',event=>{event.preventDefault();const name=document.getElementById('name-input').value.trim();const budget=Math.round(Number(document.getElementById('budget-input').value)*100)/100;const endDate=document.getElementById('end-input').value;const message=document.getElementById('setup-message');if(!name||!Number.isFinite(budget)||budget<=0||!endDate){message.textContent='Vul een naam, geldig budget en einddatum in.';return}if(editId){const pot=pots.find(p=>p.id===editId);Object.assign(pot,{name,budget,endDate})}else{const pot={id:crypto.randomUUID(),name,budget,endDate,entries:[]};pots.push(pot);activeId=pot.id}try{save();message.textContent=''}catch(e){message.textContent='Potje kon niet worden opgeslagen.';return}render()});
+      document.getElementById('edit-settings').addEventListener('click',()=>showSetup(activeId));
+      document.getElementById('add-pot').addEventListener('click',()=>showSetup());
+      document.getElementById('pot-select').addEventListener('change',event=>{activeId=event.target.value;save();render()});
+      document.getElementById('form').addEventListener('submit',event=>{event.preventDefault();const input=document.getElementById('amount');const message=document.getElementById('message');const amount=Math.round(Number(input.value)*100)/100;if(!Number.isFinite(amount)||amount<=0){message.textContent='Vul een geldig bedrag in.';return}const active=pots.find(p=>p.id===activeId);active.entries.push({id:crypto.randomUUID(),amount,createdAt:new Date().toISOString()});try{save();message.textContent=''}catch(e){message.textContent='Opslaan lukte niet op dit apparaat.'}input.value='';render();input.focus()});
+      render();
+    })();
+  </script>
+</body>
+</html>
